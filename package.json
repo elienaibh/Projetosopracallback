@@ -4,17 +4,9 @@
   "description": "Callback handler para aplicativo Nuvemshop",
   "main": "api/callback.js",
   "scripts": {
-    "dev": "vercel dev",
-    "build": "echo 'Build completed'",
-    "start": "node api/callback.js"
+    "dev": "vercel dev"
   },
   "keywords": ["nuvemshop", "callback", "oauth", "vercel"],
   "author": "LatAm Treasure",
-  "license": "MIT",
-  "dependencies": {
-    "@vercel/node": "^3.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+  "license": "MIT"
 }
