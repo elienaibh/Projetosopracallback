@@ -6,7 +6,6 @@
       "runtime": "nodejs18.x"
     }
   },
-  "regions": ["gru1", "iad1"],
   "env": {
     "NODE_ENV": "production"
   },
