@@ -3,7 +3,7 @@
  * URL: /api/test
  */
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   console.log('🧪 Endpoint de teste acessado');
   
   res.status(200).json({
@@ -14,4 +14,4 @@ export default function handler(req, res) {
     url: req.url,
     project: 'LatAm Treasure Callback Handler'
   });
-}
+};

@@ -4,13 +4,11 @@
  * URL: https://app.latamtreasure.com/api/callback
  */
 
-import { VercelRequest, VercelResponse } from '@vercel/node';
-
 // Configurações do aplicativo Nuvemshop
 const APP_ID = '19190';
 const CLIENT_SECRET = 'a2fd713e74bf1d526c7e0514774cbee5f390a8302c9195b0';
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Configurar CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -522,4 +520,4 @@ export default async function handler(req, res) {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return res.status(500).send(errorPage);
   }
-}
+};
