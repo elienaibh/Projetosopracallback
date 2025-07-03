@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "name": "latam-treasure-callback",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "regions": ["gru1", "iad1"],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}
