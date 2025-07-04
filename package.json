@@ -1,12 +1,19 @@
 {
-  "name": "nuvemshop-callback",
-  "version": "1.0.0",
-  "description": "Callback handler para aplicativo Nuvemshop",
+  "name": "latam-treasure-bridge",
+  "version": "2.0.0",
+  "description": "App completo Nuvemshop - LatAm Treasure Bridge com OAuth, APIs e LGPD",
   "main": "api/callback.js",
   "scripts": {
-    "dev": "vercel dev"
+    "dev": "vercel dev",
+    "build": "cd client && npm run build",
+    "install-client": "cd client && npm install --legacy-peer-deps"
   },
-  "keywords": ["nuvemshop", "callback", "oauth", "vercel"],
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "sqlite3": "^5.1.6"
+  },
+  "keywords": ["nuvemshop", "erp", "integration", "latam-treasure", "bridge"],
   "author": "LatAm Treasure",
   "license": "MIT"
 }

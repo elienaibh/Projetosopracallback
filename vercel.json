@@ -1,0 +1,54 @@
+{
+  "version": 2,
+  "name": "latam-treasure-bridge",
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "build"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/callback",
+      "dest": "/api/callback.js"
+    },
+    {
+      "src": "/api/erp/config/(.*)",
+      "dest": "/api/erp-config.js?store_id=$1"
+    },
+    {
+      "src": "/api/sync/products/(.*)",
+      "dest": "/api/sync-products.js?store_id=$1"
+    },
+    {
+      "src": "/api/sync/history/(.*)",
+      "dest": "/api/sync-products.js?store_id=$1"
+    },
+    {
+      "src": "/api/webhooks/store/redact",
+      "dest": "/api/webhooks/store-redact.js"
+    },
+    {
+      "src": "/api/webhooks/customers/redact",
+      "dest": "/api/webhooks/customers-redact.js"
+    },
+    {
+      "src": "/api/webhooks/customers/data_request",
+      "dest": "/api/webhooks/customers-data-request.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/build/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
