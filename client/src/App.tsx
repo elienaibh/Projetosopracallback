@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Box, Text, Card, Button, Input, Alert } from '@nimbus-ds/components';
+import '@nimbus-ds/styles/dist/index.css';
 import axios from 'axios';
 import './App.css';
 
@@ -40,18 +42,12 @@ function App() {
   // API Base URL - ajustado para produção
   const API_BASE = '/api';
 
-  // Carregar configuração ERP ao iniciar
-  useEffect(() => {
-    loadERPConfig();
-    loadSyncHistory();
-  }, []);
-
-  const showAlert = (type: 'success' | 'error', message: string) => {
+  const showAlert = useCallback((type: 'success' | 'error', message: string) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 5000);
-  };
+  }, []);
 
-  const loadERPConfig = async () => {
+  const loadERPConfig = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE}/erp/config/${storeId}`);
       setERPConfig(response.data);
@@ -61,7 +57,22 @@ function App() {
     } catch (error) {
       console.error('Erro ao carregar config ERP:', error);
     }
-  };
+  }, [API_BASE, storeId]);
+
+  const loadSyncHistory = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE}/sync/history/${storeId}`);
+      setSyncHistory(response.data.history || []);
+    } catch (error) {
+      console.error('Erro ao carregar histórico:', error);
+    }
+  }, [API_BASE, storeId]);
+
+  // Carregar configuração ERP ao iniciar
+  useEffect(() => {
+    loadERPConfig();
+    loadSyncHistory();
+  }, [loadERPConfig, loadSyncHistory]);
 
   const saveERPConfig = async () => {
     if (!erpUrl.trim() || !erpToken.trim()) {
@@ -126,186 +137,224 @@ function App() {
     }
   };
 
-  const loadSyncHistory = async () => {
-    try {
-      const response = await axios.get(`${API_BASE}/sync/history/${storeId}`);
-      setSyncHistory(response.data.history || []);
-    } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
-    }
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'success';
+      case 'pending': return 'warning';
+      case 'failed': return 'danger';
+      default: return 'neutral';
+    }
+  };
+
+  // Renderizar tela de configuração
+  const renderConfigView = () => (
+    <Card padding="large">
+      <Box display="flex" flexDirection="column" gap="medium">
+        <Text fontSize="large" fontWeight="bold">
+          🔗 Configurar ERP
+        </Text>
+        
+        {erpConfig.configured && (
+          <Alert appearance="success">
+            ERP configurado em {erpConfig.created_at ? formatDate(erpConfig.created_at) : 'data desconhecida'}
+          </Alert>
+        )}
+        
+        <Box display="flex" flexDirection="column" gap="small">
+          <Text fontSize="caption" color="neutral">URL do ERP</Text>
+          <Input
+            value={erpUrl}
+            onChange={(e) => setERPUrl(e.target.value)}
+            placeholder="http://localhost:8001"
+            disabled={configLoading}
+          />
+        </Box>
+        
+        <Box display="flex" flexDirection="column" gap="small">
+          <Text fontSize="caption" color="neutral">Token de Acesso</Text>
+          <Input
+            type="password"
+            value={erpToken}
+            onChange={(e) => setERPToken(e.target.value)}
+            placeholder="Token do ERP"
+            disabled={configLoading}
+          />
+        </Box>
+        
+        <Box display="flex" gap="small">
+          <Button
+            onClick={saveERPConfig}
+            disabled={!erpUrl.trim() || !erpToken.trim() || configLoading}
+          >
+            💾 Salvar
+          </Button>
+          
+          {erpConfig.configured && (
+            <Button
+              appearance="neutral"
+              onClick={testERPConnection}
+              disabled={configLoading}
+            >
+              🔄 Testar
+            </Button>
+          )}
+        </Box>
+      </Box>
+    </Card>
+  );
+
+  // Renderizar tela de sincronização
+  const renderSyncView = () => (
+    <Card padding="large">
+      <Box display="flex" flexDirection="column" gap="medium">
+        <Text fontSize="large" fontWeight="bold">
+          🔄 Sincronizar Produtos
+        </Text>
+        
+        {!erpConfig.configured ? (
+          <Alert appearance="warning">
+            Configure o ERP primeiro para poder sincronizar
+          </Alert>
+        ) : (
+          <>
+            <Box padding="medium" borderWidth="1" borderRadius="medium">
+              <Text fontSize="body" color="neutral">
+                ERP: {erpConfig.erp_url}
+              </Text>
+              <Text fontSize="body" color="neutral">
+                Nuvemshop: Loja #{storeId}
+              </Text>
+            </Box>
+            
+            <Text fontSize="body">
+              Esta operação copiará produtos do ERP para a Nuvemshop.
+            </Text>
+            
+            <Button
+              onClick={syncProducts}
+              disabled={syncLoading}
+            >
+              {syncLoading ? '⏳ Sincronizando...' : '📦 Copiar Produtos do ERP'}
+            </Button>
+          </>
+        )}
+      </Box>
+    </Card>
+  );
+
+  // Renderizar tela de status
+  const renderStatusView = () => (
+    <Card padding="large">
+      <Box display="flex" flexDirection="column" gap="medium">
+        <Text fontSize="large" fontWeight="bold">
+          📊 Status das Sincronizações
+        </Text>
+        
+        {syncHistory.length === 0 ? (
+          <Alert appearance="neutral">
+            Nenhuma sincronização realizada ainda
+          </Alert>
+        ) : (
+          <Box display="flex" flexDirection="column" gap="small">
+            {syncHistory.map((operation) => (
+              <Box
+                key={operation.id}
+                padding="medium"
+                borderWidth="1"
+                borderRadius="medium"
+                backgroundColor="neutral"
+              >
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Text fontSize="body" fontWeight="bold">
+                    {operation.operation_type}
+                  </Text>
+                  <Text fontSize="caption" color={getStatusColor(operation.status)}>
+                    {operation.status}
+                  </Text>
+                </Box>
+                
+                <Text fontSize="caption" color="neutral">
+                  Iniciado: {formatDate(operation.started_at)}
+                </Text>
+                
+                {operation.completed_at && (
+                  <Text fontSize="caption" color="neutral">
+                    Concluído: {formatDate(operation.completed_at)}
+                  </Text>
+                )}
+                
+                {operation.error_message && (
+                  <Text fontSize="caption" color="danger">
+                    Erro: {operation.error_message}
+                  </Text>
+                )}
+              </Box>
+            ))}
+          </Box>
+        )}
+        
+        <Button
+          appearance="neutral"
+          onClick={loadSyncHistory}
+        >
+          🔄 Atualizar Status
+        </Button>
+      </Box>
+    </Card>
+  );
+
   return (
-    <div className="app-container">
+    <Box padding="large" backgroundColor="neutral">
       {/* Header */}
-      <div className="app-header">
-        <h1>🏆 LatAm Treasure Bridge</h1>
-        <p>Integração Nuvemshop x ERP</p>
-      </div>
+      <Box marginBottom="large">
+        <Text fontSize="heading" fontWeight="bold" color="primary">
+          🏆 LatAm Treasure Bridge
+        </Text>
+        <Text fontSize="body" color="neutral">
+          Integração Nuvemshop x ERP
+        </Text>
+      </Box>
 
       {/* Navegação */}
-      <div className="app-nav">
-        <button 
-          className={`nav-btn ${currentView === 'config' ? 'active' : ''}`}
+      <Box display="flex" gap="small" marginBottom="large">
+        <Button
+          appearance={currentView === 'config' ? 'primary' : 'neutral'}
           onClick={() => setCurrentView('config')}
         >
           ⚙️ Configuração
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'sync' ? 'active' : ''}`}
+        </Button>
+        <Button
+          appearance={currentView === 'sync' ? 'primary' : 'neutral'}
           onClick={() => setCurrentView('sync')}
         >
           🔄 Sincronização
-        </button>
-        <button 
-          className={`nav-btn ${currentView === 'status' ? 'active' : ''}`}
+        </Button>
+        <Button
+          appearance={currentView === 'status' ? 'primary' : 'neutral'}
           onClick={() => setCurrentView('status')}
         >
           📊 Status
-        </button>
-      </div>
+        </Button>
+      </Box>
 
       {/* Alert Global */}
       {alert && (
-        <div className={`alert alert-${alert.type}`}>
-          {alert.message}
-        </div>
+        <Box marginBottom="medium">
+          <Alert appearance={alert.type === 'success' ? 'success' : 'danger'}>
+            {alert.message}
+          </Alert>
+        </Box>
       )}
 
       {/* Conteúdo das Telas */}
-      <div className="app-content">
-        {currentView === 'config' && (
-          <div className="card">
-            <h2>🔗 Configurar ERP</h2>
-            
-            {erpConfig.configured && (
-              <div className="alert alert-success">
-                ERP configurado em {erpConfig.created_at ? formatDate(erpConfig.created_at) : 'data desconhecida'}
-              </div>
-            )}
-            
-            <div className="form-group">
-              <label>URL do ERP</label>
-              <input
-                type="text"
-                value={erpUrl}
-                onChange={(e) => setERPUrl(e.target.value)}
-                placeholder="http://localhost:8001"
-                disabled={configLoading}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label>Token de Acesso</label>
-              <input
-                type="password"
-                value={erpToken}
-                onChange={(e) => setERPToken(e.target.value)}
-                placeholder="Token do ERP"
-                disabled={configLoading}
-              />
-            </div>
-            
-            <div className="btn-group">
-              <button
-                onClick={saveERPConfig}
-                disabled={!erpUrl.trim() || !erpToken.trim() || configLoading}
-                className="btn btn-primary"
-              >
-                {configLoading ? '⏳ Salvando...' : '💾 Salvar'}
-              </button>
-              
-              {erpConfig.configured && (
-                <button
-                  onClick={testERPConnection}
-                  disabled={configLoading}
-                  className="btn btn-secondary"
-                >
-                  {configLoading ? '⏳ Testando...' : '🔄 Testar'}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {currentView === 'sync' && (
-          <div className="card">
-            <h2>🔄 Sincronizar Produtos</h2>
-            
-            {!erpConfig.configured ? (
-              <div className="alert alert-warning">
-                Configure o ERP primeiro para poder sincronizar
-              </div>
-            ) : (
-              <>
-                <div className="info-box">
-                  <p><strong>ERP:</strong> {erpConfig.erp_url}</p>
-                  <p><strong>Nuvemshop:</strong> Loja #{storeId}</p>
-                </div>
-                
-                <p>Esta operação copiará produtos do ERP para a Nuvemshop.</p>
-                
-                <button
-                  onClick={syncProducts}
-                  disabled={syncLoading}
-                  className="btn btn-primary btn-large"
-                >
-                  {syncLoading ? '⏳ Sincronizando...' : '📦 Copiar Produtos do ERP'}
-                </button>
-              </>
-            )}
-          </div>
-        )}
-
-        {currentView === 'status' && (
-          <div className="card">
-            <h2>📊 Status das Sincronizações</h2>
-            
-            {syncHistory.length === 0 ? (
-              <div className="alert alert-info">
-                Nenhuma sincronização realizada ainda
-              </div>
-            ) : (
-              <div className="sync-history">
-                {syncHistory.map((operation) => (
-                  <div key={operation.id} className="sync-item">
-                    <div className="sync-header">
-                      <span className="sync-type">{operation.operation_type}</span>
-                      <span className={`sync-status status-${operation.status}`}>
-                        {operation.status}
-                      </span>
-                    </div>
-                    
-                    <div className="sync-details">
-                      <p><strong>Iniciado:</strong> {formatDate(operation.started_at)}</p>
-                      
-                      {operation.completed_at && (
-                        <p><strong>Concluído:</strong> {formatDate(operation.completed_at)}</p>
-                      )}
-                      
-                      {operation.error_message && (
-                        <p className="error"><strong>Erro:</strong> {operation.error_message}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            <button
-              onClick={loadSyncHistory}
-              className="btn btn-secondary"
-            >
-              🔄 Atualizar Status
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
+      {currentView === 'config' && renderConfigView()}
+      {currentView === 'sync' && renderSyncView()}
+      {currentView === 'status' && renderStatusView()}
+    </Box>
   );
 }
 

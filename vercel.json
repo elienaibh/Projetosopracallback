@@ -10,7 +10,8 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build"
+        "distDir": "build",
+        "installCommand": "npm install --force"
       }
     }
   ],
@@ -49,6 +50,7 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production"
+    "NODE_ENV": "production",
+    "GENERATE_SOURCEMAP": "false"
   }
 }
