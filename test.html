@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LatAm Treasure Bridge - Teste</title>
+</head>
+<body>
+    <h1>🏆 LatAm Treasure Bridge</h1>
+    <p>App funcionando!</p>
+    <script>
+        console.log('App carregado com sucesso');
+        // Teste de API
+        fetch('/api/erp-config')
+            .then(r => r.json())
+            .then(data => console.log('API:', data))
+            .catch(e => console.error('Erro API:', e));
+    </script>
+</body>
+</html>

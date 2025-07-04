@@ -16,9 +16,17 @@
         "distDir": "build",
         "installCommand": "npm install --force"
       }
+    },
+    {
+      "src": "test.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/test",
+      "dest": "/test.html"
+    },
     {
       "src": "/api/callback",
       "dest": "/api/callback.js"
