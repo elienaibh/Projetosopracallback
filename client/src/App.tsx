@@ -3,7 +3,6 @@ import { Box, Text, Card, Button, Input, Alert } from '@nimbus-ds/components';
 import '@nimbus-ds/styles/dist/index.css';
 import axios from 'axios';
 
-// Tipos TypeScript
 interface ERPConfig {
   configured: boolean;
   erp_url?: string;
@@ -134,10 +133,8 @@ function App() {
   const renderConfigView = () => (
     <Card>
       <Card.Body>
-        <Box display="flex" flexDirection="column" gap="base">
-          <Text fontSize="base" fontWeight="bold">
-            🔗 Configurar ERP
-          </Text>
+        <Box>
+          <Text>🔗 Configurar ERP</Text>
           
           {erpConfig.configured && (
             <Alert appearance="success">
@@ -145,8 +142,8 @@ function App() {
             </Alert>
           )}
           
-          <Box display="flex" flexDirection="column" gap="small">
-            <Text fontSize="small">URL do ERP</Text>
+          <Box>
+            <Text>URL do ERP</Text>
             <Input
               value={erpUrl}
               onChange={(e) => setERPUrl(e.target.value)}
@@ -155,8 +152,8 @@ function App() {
             />
           </Box>
           
-          <Box display="flex" flexDirection="column" gap="small">
-            <Text fontSize="small">Token de Acesso</Text>
+          <Box>
+            <Text>Token de Acesso</Text>
             <Input
               type="password"
               value={erpToken}
@@ -166,7 +163,7 @@ function App() {
             />
           </Box>
           
-          <Box display="flex" gap="small">
+          <Box>
             <Button
               onClick={saveERPConfig}
               disabled={!erpUrl.trim() || !erpToken.trim() || configLoading}
@@ -192,29 +189,21 @@ function App() {
   const renderSyncView = () => (
     <Card>
       <Card.Body>
-        <Box display="flex" flexDirection="column" gap="base">
-          <Text fontSize="base" fontWeight="bold">
-            🔄 Sincronizar Produtos
-          </Text>
+        <Box>
+          <Text>🔄 Sincronizar Produtos</Text>
           
           {!erpConfig.configured ? (
             <Alert appearance="warning">
               Configure o ERP primeiro para poder sincronizar
             </Alert>
           ) : (
-            <>
+            <Box>
               <Box>
-                <Text fontSize="small">
-                  ERP: {erpConfig.erp_url}
-                </Text>
-                <Text fontSize="small">
-                  Nuvemshop: Loja #{storeId}
-                </Text>
+                <Text>ERP: {erpConfig.erp_url}</Text>
+                <Text>Nuvemshop: Loja #{storeId}</Text>
               </Box>
               
-              <Text fontSize="small">
-                Esta operação copiará produtos do ERP para a Nuvemshop.
-              </Text>
+              <Text>Esta operação copiará produtos do ERP para a Nuvemshop.</Text>
               
               <Button
                 onClick={syncProducts}
@@ -222,7 +211,7 @@ function App() {
               >
                 {syncLoading ? '⏳ Sincronizando...' : '📦 Copiar Produtos do ERP'}
               </Button>
-            </>
+            </Box>
           )}
         </Box>
       </Card.Body>
@@ -232,52 +221,33 @@ function App() {
   const renderStatusView = () => (
     <Card>
       <Card.Body>
-        <Box display="flex" flexDirection="column" gap="base">
-          <Text fontSize="base" fontWeight="bold">
-            📊 Status das Sincronizações
-          </Text>
+        <Box>
+          <Text>📊 Status das Sincronizações</Text>
           
           {syncHistory.length === 0 ? (
             <Alert appearance="neutral">
               Nenhuma sincronização realizada ainda
             </Alert>
           ) : (
-            <Box display="flex" flexDirection="column" gap="small">
+            <Box>
               {syncHistory.map((operation) => (
                 <Box key={operation.id}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Text fontSize="small" fontWeight="bold">
-                      {operation.operation_type}
-                    </Text>
-                    <Text fontSize="small">
-                      {operation.status}
-                    </Text>
-                  </Box>
-                  
-                  <Text fontSize="small">
-                    Iniciado: {formatDate(operation.started_at)}
-                  </Text>
+                  <Text>{operation.operation_type} - {operation.status}</Text>
+                  <Text>Iniciado: {formatDate(operation.started_at)}</Text>
                   
                   {operation.completed_at && (
-                    <Text fontSize="small">
-                      Concluído: {formatDate(operation.completed_at)}
-                    </Text>
+                    <Text>Concluído: {formatDate(operation.completed_at)}</Text>
                   )}
                   
                   {operation.error_message && (
-                    <Text fontSize="small">
-                      Erro: {operation.error_message}
-                    </Text>
+                    <Text>Erro: {operation.error_message}</Text>
                   )}
                 </Box>
               ))}
             </Box>
           )}
           
-          <Button
-            appearance="neutral"
-            onClick={loadSyncHistory}
-          >
+          <Button onClick={loadSyncHistory}>
             🔄 Atualizar Status
           </Button>
         </Box>
@@ -288,15 +258,11 @@ function App() {
   return (
     <Box>
       <Box>
-        <Text fontSize="base" fontWeight="bold">
-          🏆 LatAm Treasure Bridge
-        </Text>
-        <Text fontSize="small">
-          Integração Nuvemshop x ERP
-        </Text>
+        <Text>🏆 LatAm Treasure Bridge</Text>
+        <Text>Integração Nuvemshop x ERP</Text>
       </Box>
 
-      <Box display="flex" gap="small">
+      <Box>
         <Button
           appearance={currentView === 'config' ? 'primary' : 'neutral'}
           onClick={() => setCurrentView('config')}
@@ -318,11 +284,9 @@ function App() {
       </Box>
 
       {alert && (
-        <Box>
-          <Alert appearance={alert.type === 'success' ? 'success' : 'danger'}>
-            {alert.message}
-          </Alert>
-        </Box>
+        <Alert appearance={alert.type === 'success' ? 'success' : 'danger'}>
+          {alert.message}
+        </Alert>
       )}
 
       {currentView === 'config' && renderConfigView()}
