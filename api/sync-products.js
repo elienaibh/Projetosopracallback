@@ -1,4 +1,4 @@
-// API para sincronização de produtos
+// API para sincronização - SIMPLIFICADA
 // Arquivo: api/sync-products.js
 
 module.exports = async function handler(req, res) {
@@ -11,39 +11,30 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { store_id } = req.query;
+  // Pegar store_id do query ou body
+  const store_id = req.query.store_id || req.body?.store_id || '1234567';
 
   try {
     if (req.method === 'POST') {
-      // Sincronizar produtos
       const { direction = 'erp_to_nuvemshop' } = req.body;
       
-      console.log(`🔄 Iniciando sincronização para loja: ${store_id}`);
-      console.log(`📊 Direção: ${direction}`);
-      
-      // TODO: Implementar sincronização real
-      // Por ora simular operação
+      console.log(`🔄 POST - Sincronização para loja: ${store_id}, direção: ${direction}`);
       
       const operationId = Math.floor(Math.random() * 1000000);
       
-      // Simular delay de processamento
-      setTimeout(() => {
-        console.log(`✅ Sincronização ${operationId} concluída`);
-      }, 2000);
-      
+      // Simular operação (MVP)
       return res.json({
         success: true,
-        message: 'Sincronização iniciada com sucesso',
+        message: 'Sincronização iniciada com sucesso (simulado)',
         operation_id: operationId,
         direction: direction
       });
     }
     
     if (req.method === 'GET') {
-      // Buscar histórico de sincronizações
-      console.log(`📋 Buscando histórico para loja: ${store_id}`);
+      console.log(`📋 GET - Histórico para loja: ${store_id}`);
       
-      // TODO: Implementar banco real - por ora simular
+      // Simular histórico (MVP)
       const mockHistory = [
         {
           id: 1,

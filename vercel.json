@@ -2,7 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/**/*.js",
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "api/webhooks/*.js", 
       "use": "@vercel/node"
     },
     {
@@ -20,49 +24,36 @@
       "dest": "/api/callback.js"
     },
     {
-      "src": "/api/erp/config/([^/]+)",
-      "dest": "/api/erp-config.js?store_id=$1"
+      "src": "/api/erp-config",
+      "dest": "/api/erp-config.js"
     },
     {
-      "src": "/api/sync/products/([^/]+)",
-      "dest": "/api/sync-products.js?store_id=$1"
+      "src": "/api/sync-products", 
+      "dest": "/api/sync-products.js"
     },
     {
-      "src": "/api/sync/history/([^/]+)",
-      "dest": "/api/sync-products.js?store_id=$1"
-    },
-    {
-      "src": "/api/webhooks/store/redact",
+      "src": "/api/webhooks/store-redact",
       "dest": "/api/webhooks/store-redact.js"
     },
     {
-      "src": "/api/webhooks/customers/redact",
+      "src": "/api/webhooks/customers-redact",
       "dest": "/api/webhooks/customers-redact.js"
     },
     {
-      "src": "/api/webhooks/customers/data_request",
+      "src": "/api/webhooks/customers-data-request",
       "dest": "/api/webhooks/customers-data-request.js"
-    },
-    {
-      "src": "/app",
-      "dest": "/client/build/index.html"
     },
     {
       "src": "/static/(.*)",
       "dest": "/client/build/static/$1"
     },
     {
-      "src": "/(.*\\.(js|css|map|ico|png|jpg|svg))",
+      "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2))",
       "dest": "/client/build/$1"
     },
     {
-      "src": "/",
-      "dest": "/index.html"
+      "src": "/(.*)",
+      "dest": "/client/build/index.html"
     }
-  ],
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  ]
 }

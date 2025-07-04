@@ -1,4 +1,4 @@
-// API para configuração ERP
+// API para configuração ERP - SIMPLIFICADA
 // Arquivo: api/erp-config.js
 
 module.exports = async function handler(req, res) {
@@ -11,29 +11,21 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  const { store_id } = req.query;
+  // Pegar store_id do query ou body
+  const store_id = req.query.store_id || req.body?.store_id || '1234567';
 
   try {
     if (req.method === 'GET') {
-      // Buscar configuração ERP (simulado por enquanto)
-      console.log(`📝 Buscando config ERP para loja: ${store_id}`);
+      console.log(`📝 GET - Buscando config ERP para loja: ${store_id}`);
       
-      // TODO: Implementar banco real - por ora simular
-      const hasConfig = false; // Simular que não tem config ainda
-      
-      if (hasConfig) {
-        return res.json({
-          configured: true,
-          erp_url: 'http://localhost:8001',
-          created_at: new Date().toISOString()
-        });
-      } else {
-        return res.json({ configured: false });
-      }
+      // Simular que não tem config ainda (MVP)
+      return res.json({ 
+        configured: false,
+        message: 'Nenhuma configuração ERP encontrada (simulado)'
+      });
     }
     
     if (req.method === 'POST') {
-      // Salvar configuração ERP
       const { erp_url, erp_token } = req.body;
       
       if (!erp_url || !erp_token) {
@@ -42,15 +34,16 @@ module.exports = async function handler(req, res) {
         });
       }
       
-      console.log(`💾 Salvando config ERP para loja: ${store_id}`);
+      console.log(`💾 POST - Salvando config ERP para loja: ${store_id}`);
       console.log(`🔗 URL: ${erp_url}`);
       
-      // TODO: Salvar no banco real
-      // Por ora apenas simular sucesso
-      
+      // Simular sucesso (MVP)
       return res.json({
         success: true,
-        message: 'Configuração ERP salva com sucesso'
+        message: 'Configuração ERP salva com sucesso (simulado)',
+        configured: true,
+        erp_url: erp_url,
+        created_at: new Date().toISOString()
       });
     }
     

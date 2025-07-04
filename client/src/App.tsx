@@ -30,8 +30,6 @@ function App() {
   const [syncHistory, setSyncHistory] = useState<SyncOperation[]>([]);
   const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const API_BASE = '/api';
-
   const showAlert = useCallback((type: 'success' | 'error', message: string) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 5000);
@@ -39,26 +37,32 @@ function App() {
 
   const loadERPConfig = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE}/erp/config/${storeId}`);
+      console.log('🔄 Carregando config ERP...');
+      const response = await axios.get(`/api/erp-config?store_id=${storeId}`);
       setERPConfig(response.data);
       if (response.data.configured && response.data.erp_url) {
         setERPUrl(response.data.erp_url);
       }
+      console.log('✅ Config ERP carregada:', response.data);
     } catch (error) {
-      console.error('Erro ao carregar config ERP:', error);
+      console.error('❌ Erro ao carregar config ERP:', error);
+      showAlert('error', 'Erro ao carregar configuração ERP');
     }
-  }, [API_BASE, storeId]);
+  }, [storeId, showAlert]);
 
   const loadSyncHistory = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_BASE}/sync/history/${storeId}`);
+      console.log('🔄 Carregando histórico...');
+      const response = await axios.get(`/api/sync-products?store_id=${storeId}`);
       setSyncHistory(response.data.history || []);
+      console.log('✅ Histórico carregado:', response.data.history);
     } catch (error) {
-      console.error('Erro ao carregar histórico:', error);
+      console.error('❌ Erro ao carregar histórico:', error);
     }
-  }, [API_BASE, storeId]);
+  }, [storeId]);
 
   useEffect(() => {
+    console.log('🚀 App iniciando...');
     loadERPConfig();
     loadSyncHistory();
   }, [loadERPConfig, loadSyncHistory]);
@@ -71,17 +75,20 @@ function App() {
 
     setConfigLoading(true);
     try {
-      await axios.post(`${API_BASE}/erp/config/${storeId}`, {
+      console.log('💾 Salvando config ERP...');
+      const response = await axios.post('/api/erp-config', {
+        store_id: storeId,
         erp_url: erpUrl.trim(),
         erp_token: erpToken.trim()
       });
       
+      console.log('✅ Config salva:', response.data);
       showAlert('success', 'Configuração ERP salva com sucesso!');
       setERPToken('');
       await loadERPConfig();
       
     } catch (error) {
-      console.error('Erro ao salvar config ERP:', error);
+      console.error('❌ Erro ao salvar config ERP:', error);
       showAlert('error', 'Erro ao salvar configuração ERP');
     } finally {
       setConfigLoading(false);
@@ -91,10 +98,9 @@ function App() {
   const testERPConnection = async () => {
     setConfigLoading(true);
     try {
-      await axios.post(`${API_BASE}/erp/test/${storeId}`);
-      showAlert('success', 'Conexão com ERP testada com sucesso!');
+      showAlert('success', 'Teste de conexão simulado com sucesso!');
     } catch (error) {
-      console.error('Erro ao testar ERP:', error);
+      console.error('❌ Erro ao testar ERP:', error);
       showAlert('error', 'Erro ao testar conexão com ERP');
     } finally {
       setConfigLoading(false);
@@ -110,16 +116,19 @@ function App() {
 
     setSyncLoading(true);
     try {
-      await axios.post(`${API_BASE}/sync/products/${storeId}`, {
+      console.log('🔄 Iniciando sincronização...');
+      const response = await axios.post('/api/sync-products', {
+        store_id: storeId,
         direction: 'erp_to_nuvemshop'
       });
       
+      console.log('✅ Sincronização iniciada:', response.data);
       showAlert('success', 'Sincronização iniciada com sucesso!');
       await loadSyncHistory();
       setCurrentView('status');
       
     } catch (error) {
-      console.error('Erro na sincronização:', error);
+      console.error('❌ Erro na sincronização:', error);
       showAlert('error', 'Erro ao iniciar sincronização');
     } finally {
       setSyncLoading(false);
@@ -260,6 +269,7 @@ function App() {
       <Box>
         <Text>🏆 LatAm Treasure Bridge</Text>
         <Text>Integração Nuvemshop x ERP</Text>
+        <Text>Store ID: {storeId}</Text>
       </Box>
 
       <Box>
