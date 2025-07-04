@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Text, Card, Button, Input, Alert } from '@nimbus-ds/components';
-import '@nimbus-ds/styles/dist/index.css';
 import axios from 'axios';
+import './App.css';
 
 interface ERPConfig {
   configured: boolean;
@@ -95,18 +94,6 @@ function App() {
     }
   };
 
-  const testERPConnection = async () => {
-    setConfigLoading(true);
-    try {
-      showAlert('success', 'Teste de conexão simulado com sucesso!');
-    } catch (error) {
-      console.error('❌ Erro ao testar ERP:', error);
-      showAlert('error', 'Erro ao testar conexão com ERP');
-    } finally {
-      setConfigLoading(false);
-    }
-  };
-
   const syncProducts = async () => {
     if (!erpConfig.configured) {
       showAlert('error', 'Configure o ERP primeiro');
@@ -139,170 +126,162 @@ function App() {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
-  const renderConfigView = () => (
-    <Card>
-      <Card.Body>
-        <Box>
-          <Text>🔗 Configurar ERP</Text>
-          
-          {erpConfig.configured && (
-            <Alert appearance="success">
-              ERP configurado em {erpConfig.created_at ? formatDate(erpConfig.created_at) : 'data desconhecida'}
-            </Alert>
-          )}
-          
-          <Box>
-            <Text>URL do ERP</Text>
-            <Input
-              value={erpUrl}
-              onChange={(e) => setERPUrl(e.target.value)}
-              placeholder="http://localhost:8001"
-              disabled={configLoading}
-            />
-          </Box>
-          
-          <Box>
-            <Text>Token de Acesso</Text>
-            <Input
-              type="password"
-              value={erpToken}
-              onChange={(e) => setERPToken(e.target.value)}
-              placeholder="Token do ERP"
-              disabled={configLoading}
-            />
-          </Box>
-          
-          <Box>
-            <Button
-              onClick={saveERPConfig}
-              disabled={!erpUrl.trim() || !erpToken.trim() || configLoading}
-            >
-              💾 Salvar
-            </Button>
-            
-            {erpConfig.configured && (
-              <Button
-                appearance="neutral"
-                onClick={testERPConnection}
-                disabled={configLoading}
-              >
-                🔄 Testar
-              </Button>
-            )}
-          </Box>
-        </Box>
-      </Card.Body>
-    </Card>
-  );
-
-  const renderSyncView = () => (
-    <Card>
-      <Card.Body>
-        <Box>
-          <Text>🔄 Sincronizar Produtos</Text>
-          
-          {!erpConfig.configured ? (
-            <Alert appearance="warning">
-              Configure o ERP primeiro para poder sincronizar
-            </Alert>
-          ) : (
-            <Box>
-              <Box>
-                <Text>ERP: {erpConfig.erp_url}</Text>
-                <Text>Nuvemshop: Loja #{storeId}</Text>
-              </Box>
-              
-              <Text>Esta operação copiará produtos do ERP para a Nuvemshop.</Text>
-              
-              <Button
-                onClick={syncProducts}
-                disabled={syncLoading}
-              >
-                {syncLoading ? '⏳ Sincronizando...' : '📦 Copiar Produtos do ERP'}
-              </Button>
-            </Box>
-          )}
-        </Box>
-      </Card.Body>
-    </Card>
-  );
-
-  const renderStatusView = () => (
-    <Card>
-      <Card.Body>
-        <Box>
-          <Text>📊 Status das Sincronizações</Text>
-          
-          {syncHistory.length === 0 ? (
-            <Alert appearance="neutral">
-              Nenhuma sincronização realizada ainda
-            </Alert>
-          ) : (
-            <Box>
-              {syncHistory.map((operation) => (
-                <Box key={operation.id}>
-                  <Text>{operation.operation_type} - {operation.status}</Text>
-                  <Text>Iniciado: {formatDate(operation.started_at)}</Text>
-                  
-                  {operation.completed_at && (
-                    <Text>Concluído: {formatDate(operation.completed_at)}</Text>
-                  )}
-                  
-                  {operation.error_message && (
-                    <Text>Erro: {operation.error_message}</Text>
-                  )}
-                </Box>
-              ))}
-            </Box>
-          )}
-          
-          <Button onClick={loadSyncHistory}>
-            🔄 Atualizar Status
-          </Button>
-        </Box>
-      </Card.Body>
-    </Card>
-  );
-
   return (
-    <Box>
-      <Box>
-        <Text>🏆 LatAm Treasure Bridge</Text>
-        <Text>Integração Nuvemshop x ERP</Text>
-        <Text>Store ID: {storeId}</Text>
-      </Box>
+    <div className="app">
+      <div className="header">
+        <h1>🏆 LatAm Treasure Bridge</h1>
+        <p>Integração Nuvemshop x ERP</p>
+        <p>Store ID: {storeId}</p>
+      </div>
 
-      <Box>
-        <Button
-          appearance={currentView === 'config' ? 'primary' : 'neutral'}
+      <div className="nav">
+        <button
+          className={currentView === 'config' ? 'active' : ''}
           onClick={() => setCurrentView('config')}
         >
           ⚙️ Configuração
-        </Button>
-        <Button
-          appearance={currentView === 'sync' ? 'primary' : 'neutral'}
+        </button>
+        <button
+          className={currentView === 'sync' ? 'active' : ''}
           onClick={() => setCurrentView('sync')}
         >
           🔄 Sincronização
-        </Button>
-        <Button
-          appearance={currentView === 'status' ? 'primary' : 'neutral'}
+        </button>
+        <button
+          className={currentView === 'status' ? 'active' : ''}
           onClick={() => setCurrentView('status')}
         >
           📊 Status
-        </Button>
-      </Box>
+        </button>
+      </div>
 
       {alert && (
-        <Alert appearance={alert.type === 'success' ? 'success' : 'danger'}>
+        <div className={`alert ${alert.type}`}>
           {alert.message}
-        </Alert>
+        </div>
       )}
 
-      {currentView === 'config' && renderConfigView()}
-      {currentView === 'sync' && renderSyncView()}
-      {currentView === 'status' && renderStatusView()}
-    </Box>
+      <div className="content">
+        {currentView === 'config' && (
+          <div className="card">
+            <h2>🔗 Configurar ERP</h2>
+            
+            {erpConfig.configured && (
+              <div className="alert success">
+                ERP configurado em {erpConfig.created_at ? formatDate(erpConfig.created_at) : 'data desconhecida'}
+              </div>
+            )}
+            
+            <div className="form-group">
+              <label>URL do ERP</label>
+              <input
+                type="text"
+                value={erpUrl}
+                onChange={(e) => setERPUrl(e.target.value)}
+                placeholder="http://localhost:8001"
+                disabled={configLoading}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Token de Acesso</label>
+              <input
+                type="password"
+                value={erpToken}
+                onChange={(e) => setERPToken(e.target.value)}
+                placeholder="Token do ERP"
+                disabled={configLoading}
+              />
+            </div>
+            
+            <div className="buttons">
+              <button
+                onClick={saveERPConfig}
+                disabled={!erpUrl.trim() || !erpToken.trim() || configLoading}
+                className="btn primary"
+              >
+                {configLoading ? '⏳ Salvando...' : '💾 Salvar'}
+              </button>
+              
+              {erpConfig.configured && (
+                <button
+                  onClick={() => showAlert('success', 'Teste simulado com sucesso!')}
+                  disabled={configLoading}
+                  className="btn secondary"
+                >
+                  🔄 Testar
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {currentView === 'sync' && (
+          <div className="card">
+            <h2>🔄 Sincronizar Produtos</h2>
+            
+            {!erpConfig.configured ? (
+              <div className="alert warning">
+                Configure o ERP primeiro para poder sincronizar
+              </div>
+            ) : (
+              <>
+                <div className="info-box">
+                  <p><strong>ERP:</strong> {erpConfig.erp_url}</p>
+                  <p><strong>Nuvemshop:</strong> Loja #{storeId}</p>
+                </div>
+                
+                <p>Esta operação copiará produtos do ERP para a Nuvemshop.</p>
+                
+                <button
+                  onClick={syncProducts}
+                  disabled={syncLoading}
+                  className="btn primary large"
+                >
+                  {syncLoading ? '⏳ Sincronizando...' : '📦 Copiar Produtos do ERP'}
+                </button>
+              </>
+            )}
+          </div>
+        )}
+
+        {currentView === 'status' && (
+          <div className="card">
+            <h2>📊 Status das Sincronizações</h2>
+            
+            {syncHistory.length === 0 ? (
+              <div className="alert info">
+                Nenhuma sincronização realizada ainda
+              </div>
+            ) : (
+              <div className="history">
+                {syncHistory.map((operation) => (
+                  <div key={operation.id} className="history-item">
+                    <div className="history-header">
+                      <span>{operation.operation_type}</span>
+                      <span className={`status ${operation.status}`}>{operation.status}</span>
+                    </div>
+                    <p>Iniciado: {formatDate(operation.started_at)}</p>
+                    
+                    {operation.completed_at && (
+                      <p>Concluído: {formatDate(operation.completed_at)}</p>
+                    )}
+                    
+                    {operation.error_message && (
+                      <p className="error">Erro: {operation.error_message}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <button onClick={loadSyncHistory} className="btn secondary">
+              🔄 Atualizar Status
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
