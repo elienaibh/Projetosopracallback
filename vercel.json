@@ -1,59 +1,17 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/*.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "api/webhooks/*.js", 
-      "use": "@vercel/node"
-    },
-    {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "build",
-        "installCommand": "npm install --force"
-      }
-    },
-    {
-      "src": "test.html",
-      "use": "@vercel/static"
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/test",
-      "dest": "/test.html"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
-      "src": "/api/callback",
-      "dest": "/api/callback.js"
-    },
-    {
-      "src": "/api/erp-config",
-      "dest": "/api/erp-config.js"
-    },
-    {
-      "src": "/api/sync-products", 
-      "dest": "/api/sync-products.js"
-    },
-    {
-      "src": "/api/webhooks/(.*)",
-      "dest": "/api/webhooks/$1.js"
-    },
-    {
-      "src": "/static/(.*)",
-      "dest": "/client/build/static/$1"
-    },
-    {
-      "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2|map))",
-      "dest": "/client/build/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/client/build/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
