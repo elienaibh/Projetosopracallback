@@ -32,23 +32,15 @@
       "dest": "/api/sync-products.js"
     },
     {
-      "src": "/api/webhooks/store-redact",
-      "dest": "/api/webhooks/store-redact.js"
-    },
-    {
-      "src": "/api/webhooks/customers-redact",
-      "dest": "/api/webhooks/customers-redact.js"
-    },
-    {
-      "src": "/api/webhooks/customers-data-request",
-      "dest": "/api/webhooks/customers-data-request.js"
+      "src": "/api/webhooks/(.*)",
+      "dest": "/api/webhooks/$1.js"
     },
     {
       "src": "/static/(.*)",
       "dest": "/client/build/static/$1"
     },
     {
-      "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2))",
+      "src": "/(.*\\.(js|css|ico|png|jpg|svg|woff|woff2|map))",
       "dest": "/client/build/$1"
     },
     {
