@@ -7,11 +7,11 @@
       "headers": [
         {
           "key": "X-Frame-Options",
-          "value": "SAMEORIGIN"
+          "value": "ALLOWALL"
         },
         {
           "key": "Content-Security-Policy",
-          "value": "frame-ancestors https://admin.nuvemshop.com.br https://admin.tiendanube.com 'self'"
+          "value": "frame-ancestors *"
         }
       ]
     }
