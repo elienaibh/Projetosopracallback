@@ -22,20 +22,79 @@ function App() {
   const [currentView, setCurrentView] = useState<'config' | 'sync' | 'status'>('config');
   const [storeId, setStoreId] = useState<string>('');
   const [appLoading, setAppLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [erpConfig, setERPConfig] = useState<ERPConfig>({ configured: false });
   const [erpUrl, setERPUrl] = useState<string>('');
   const [erpToken, setERPToken] = useState<string>('');
   const [configLoading, setConfigLoading] = useState<boolean>(false);
   const [syncLoading, setSyncLoading] = useState<boolean>(false);
   const [syncHistory, setSyncHistory] = useState<SyncOperation[]>([]);
-  const [alert, setAlert] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [alert, setAlert] = useState<{ type: 'success' | 'error' | 'info', message: string } | null>(null);
 
-  const showAlert = useCallback((type: 'success' | 'error', message: string) => {
+  const showAlert = useCallback((type: 'success' | 'error' | 'info', message: string) => {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 5000);
   }, []);
 
+  // Verificar autenticação OAuth
+  useEffect(() => {
+    console.log('🚀 LatAm Treasure Bridge - Standalone App');
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const storeParam = urlParams.get('store_id');
+    const storedStoreId = localStorage.getItem('nuvemshop_store_id');
+    const storedToken = localStorage.getItem('nuvemshop_access_token');
+    
+    if (code && storeParam) {
+      // Callback OAuth - processar código
+      console.log('🔐 Processando OAuth callback...');
+      processOAuthCallback(code, storeParam);
+    } else if (storedStoreId && storedToken) {
+      // Já autenticado
+      console.log('✅ Já autenticado para loja:', storedStoreId);
+      setStoreId(storedStoreId);
+      setIsAuthenticated(true);
+      setAppLoading(false);
+    } else {
+      // Não autenticado
+      console.log('❌ Não autenticado - mostrar tela de instalação');
+      setAppLoading(false);
+    }
+  }, []);
+
+  const processOAuthCallback = async (code: string, store_id: string) => {
+    try {
+      console.log('🔄 Fazendo troca code → access_token...');
+      
+      const response = await fetch(`/api/callback?code=${code}&store_id=${store_id}`);
+      
+      if (response.ok) {
+        // Salvar dados de autenticação
+        localStorage.setItem('nuvemshop_store_id', store_id);
+        localStorage.setItem('nuvemshop_authenticated', 'true');
+        
+        setStoreId(store_id);
+        setIsAuthenticated(true);
+        setAppLoading(false);
+        
+        showAlert('success', '🎉 App instalado com sucesso!');
+        
+        // Limpar URL
+        window.history.replaceState({}, document.title, '/');
+      } else {
+        throw new Error('Erro na autenticação');
+      }
+    } catch (error) {
+      console.error('❌ Erro OAuth:', error);
+      showAlert('error', 'Erro na instalação. Tente novamente.');
+      setAppLoading(false);
+    }
+  };
+
   const loadERPConfig = useCallback(async () => {
+    if (!storeId) return;
+    
     try {
       console.log('🔄 Carregando config ERP...');
       const response = await axios.get(`/api/erp-config?store_id=${storeId}`);
@@ -51,6 +110,8 @@ function App() {
   }, [storeId, showAlert]);
 
   const loadSyncHistory = useCallback(async () => {
+    if (!storeId) return;
+    
     try {
       console.log('🔄 Carregando histórico...');
       const response = await axios.get(`/api/sync-products?store_id=${storeId}`);
@@ -61,57 +122,13 @@ function App() {
     }
   }, [storeId]);
 
-  // Detectar store_id e inicializar app
+  // Carregar dados quando autenticado
   useEffect(() => {
-    console.log('🚀 App iniciando...');
-    
-    // Detectar store_id da URL ou usar fallback
-    const detectStoreId = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramStoreId = urlParams.get('store_id');
-      
-      if (paramStoreId) {
-        return paramStoreId;
-      }
-      
-      // Tentar obter do path: /admin/123456/apps/19190
-      const pathMatch = window.location.pathname.match(/\/admin\/(\d+)\/apps/);
-      if (pathMatch) {
-        return pathMatch[1];
-      }
-      
-      // Fallback para desenvolvimento
-      return '1234567';
-    };
-    
-    const detectedStoreId = detectStoreId();
-    setStoreId(detectedStoreId);
-    setAppLoading(false);
-    
-    console.log('🏪 Store ID detectado:', detectedStoreId);
-    
-    // Notificar parent window que app está pronto (para iframe)
-    try {
-      if (window.parent !== window) {
-        window.parent.postMessage({
-          type: 'APP_READY',
-          appId: '19190',
-          storeId: detectedStoreId
-        }, '*');
-        console.log('📢 Parent notificado que app está pronto');
-      }
-    } catch (e) {
-      console.log('ℹ️ Rodando fora do iframe');
-    }
-  }, []);
-  
-  // Carregar configuração ERP quando store_id estiver disponível
-  useEffect(() => {
-    if (storeId) {
+    if (isAuthenticated && storeId) {
       loadERPConfig();
       loadSyncHistory();
     }
-  }, [storeId, loadERPConfig, loadSyncHistory]);
+  }, [isAuthenticated, storeId, loadERPConfig, loadSyncHistory]);
 
   const saveERPConfig = async () => {
     if (!erpUrl.trim() || !erpToken.trim()) {
@@ -169,12 +186,18 @@ function App() {
     }
   };
 
+  const handleInstall = () => {
+    const appId = '19190';
+    const installUrl = `https://www.nuvemshop.com.br/apps/${appId}/authorize`;
+    window.location.href = installUrl;
+  };
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
   // Loading inicial
-  if (appLoading || !storeId) {
+  if (appLoading) {
     return (
       <div className="app loading">
         <div className="loading-content">
@@ -185,11 +208,41 @@ function App() {
     );
   }
 
+  // Tela de instalação (não autenticado)
+  if (!isAuthenticated) {
+    return (
+      <div className="app">
+        <div className="install-screen">
+          <div className="install-content">
+            <h1>🏆 LatAm Treasure Bridge</h1>
+            <h2>Integração Nuvemshop x ERP</h2>
+            
+            <div className="install-info">
+              <p>✅ Sincronize produtos do seu ERP com a Nuvemshop</p>
+              <p>✅ Gerencie estoque automaticamente</p>
+              <p>✅ Interface simples e intuitiva</p>
+            </div>
+            
+            <button onClick={handleInstall} className="btn primary large install-btn">
+              🚀 Instalar Aplicativo
+            </button>
+            
+            <p className="install-note">
+              Você será redirecionado para autorizar o aplicativo na sua loja Nuvemshop
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // App principal (autenticado)
   return (
     <div className="app">
       <div className="header">
         <h1>🏆 LatAm Treasure Bridge</h1>
         <p>Integração Nuvemshop x ERP - Loja #{storeId}</p>
+        <small style={{color: 'green'}}>✅ App Standalone Conectado</small>
       </div>
 
       <div className="nav">

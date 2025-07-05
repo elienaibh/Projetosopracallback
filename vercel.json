@@ -1,21 +1,6 @@
 {
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/build",
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "ALLOWALL"
-        },
-        {
-          "key": "Content-Security-Policy",
-          "value": "frame-ancestors *"
-        }
-      ]
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
