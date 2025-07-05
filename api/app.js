@@ -1,64 +1,78 @@
-// Endpoint para forçar abertura em nova aba
-// Arquivo: api/app.js
+/**
+ * Entry point do aplicativo Nuvemshop
+ * Serve o React app diretamente (standalone mode)
+ * Arquivo: api/app.js
+ */
+
+const { readFileSync } = require('fs');
+const path = require('path');
 
 module.exports = async function handler(req, res) {
-  // HTML que força abertura em nova aba
-  const redirectHTML = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <title>LatAm Treasure Bridge</title>
-    <meta charset="utf-8">
-  </head>
-  <body>
-    <script>
-      // Detectar se está no iframe
-      if (window.parent !== window) {
-        // Está no iframe - abrir em nova aba
-        window.parent.open('https://projetosopracallback.vercel.app', '_blank');
-        
-        // Mostrar mensagem no iframe
-        document.body.innerHTML = \`
-          <div style="
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background: #f5f7fa;
-          ">
-            <div style="
-              background: white;
-              padding: 40px;
-              border-radius: 12px;
-              box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-              max-width: 400px;
-            ">
-              <h2 style="color: #1a73e8; margin-bottom: 20px;">
-                🚀 LatAm Treasure Bridge
-              </h2>
-              <p style="color: #333; margin-bottom: 20px;">
-                O aplicativo foi aberto em uma nova aba!
-              </p>
-              <p style="color: #666; font-size: 14px;">
-                Se não abriu automaticamente, 
-                <a href="https://projetosopracallback.vercel.app" target="_blank" style="color: #1a73e8;">
-                  clique aqui
-                </a>
-              </p>
-            </div>
-          </div>
-        \`;
-      } else {
-        // Não está no iframe - redirecionar normalmente
-        window.location.href = '/';
-      }
-    </script>
-  </body>
-  </html>`;
-
-  res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.setHeader('X-Frame-Options', 'ALLOWALL');
-  return res.status(200).send(redirectHTML);
+  try {
+    // Ler o arquivo HTML buildado do React
+    const htmlPath = path.join(process.cwd(), 'index.html');
+    const html = readFileSync(htmlPath, 'utf8');
+    
+    // Headers para permitir iframe se necessário (futuro)
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('X-Frame-Options', 'ALLOWALL');
+    res.setHeader('Cache-Control', 'no-cache');
+    
+    console.log('🚀 Servindo React app para:', req.headers['user-agent']);
+    
+    return res.status(200).send(html);
+    
+  } catch (error) {
+    console.error('❌ Erro ao servir app:', error);
+    
+    // Fallback HTML simples em caso de erro
+    const fallbackHtml = `
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>LatAm Treasure Bridge</title>
+        <style>
+            body { 
+                font-family: Arial, sans-serif; 
+                text-align: center; 
+                padding: 50px;
+                background: #f5f7fa;
+            }
+            .container {
+                background: white;
+                padding: 40px;
+                border-radius: 12px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                max-width: 500px;
+                margin: 0 auto;
+            }
+            .error { color: #d93025; }
+            .btn {
+                background: #1a73e8;
+                color: white;
+                padding: 12px 24px;
+                border: none;
+                border-radius: 8px;
+                text-decoration: none;
+                display: inline-block;
+                margin: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>🏆 LatAm Treasure Bridge</h1>
+            <p class="error">Erro ao carregar aplicativo</p>
+            <p>Detalhes: ${error.message}</p>
+            <a href="/" class="btn">🔄 Tentar Novamente</a>
+            <a href="https://admin.nuvemshop.com.br" class="btn">⚙️ Voltar ao Painel</a>
+        </div>
+    </body>
+    </html>`;
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(500).send(fallbackHtml);
+  }
 };

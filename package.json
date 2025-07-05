@@ -2,18 +2,40 @@
   "name": "latam-treasure-bridge",
   "version": "2.0.1",
   "description": "App completo Nuvemshop - LatAm Treasure Bridge com OAuth, APIs e LGPD",
-  "main": "api/callback.js",
+  "main": "api/app.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "cd client && npm run build",
-    "install-client": "cd client && npm install --legacy-peer-deps"
+    "build": "cd client && npm install --legacy-peer-deps && npm run build",
+    "build-local": "cd client && npm run build",
+    "install-client": "cd client && npm install --legacy-peer-deps",
+    "deploy": "npm run build && vercel --prod",
+    "deploy-preview": "npm run build && vercel",
+    "start": "node server.js",
+    "test": "cd client && npm test",
+    "lint": "cd client && npm run lint",
+    "clean": "rm -rf client/build client/node_modules .vercel",
+    "reset": "npm run clean && npm install && npm run install-client",
+    "logs": "vercel logs",
+    "status": "vercel ls",
+    "setup": "npm install && npm run install-client && npm run build"
   },
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "sqlite3": "^5.1.6"
   },
-  "keywords": ["nuvemshop", "erp", "integration", "latam-treasure", "bridge"],
+  "devDependencies": {
+    "vercel": "^33.0.1"
+  },
+  "keywords": ["nuvemshop", "erp", "integration", "latam-treasure", "bridge", "standalone", "oauth"],
   "author": "LatAm Treasure",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/latamtreasure/nuvemshop-bridge"
+  },
+  "bugs": {
+    "url": "https://github.com/latamtreasure/nuvemshop-bridge/issues"
+  },
+  "homepage": "https://projetosopracallback.vercel.app"
 }
