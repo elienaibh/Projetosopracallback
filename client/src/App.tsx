@@ -20,7 +20,8 @@ interface SyncOperation {
 
 function App() {
   const [currentView, setCurrentView] = useState<'config' | 'sync' | 'status'>('config');
-  const [storeId] = useState<string>('1234567');
+  const [storeId, setStoreId] = useState<string>('');
+  const [appLoading, setAppLoading] = useState<boolean>(true);
   const [erpConfig, setERPConfig] = useState<ERPConfig>({ configured: false });
   const [erpUrl, setERPUrl] = useState<string>('');
   const [erpToken, setERPToken] = useState<string>('');
@@ -62,9 +63,51 @@ function App() {
 
   useEffect(() => {
     console.log('🚀 App iniciando...');
-    loadERPConfig();
-    loadSyncHistory();
-  }, [loadERPConfig, loadSyncHistory]);
+    
+    // Detectar store_id da URL
+    const detectStoreId = () => {
+      // Tentar diferentes formas de obter store_id
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramStoreId = urlParams.get('store_id');
+      
+      if (paramStoreId) {
+        return paramStoreId;
+      }
+      
+      // Tentar obter do path: /admin/123456/apps/19190
+      const pathMatch = window.location.pathname.match(/\/admin\/(\d+)\/apps/);
+      if (pathMatch) {
+        return pathMatch[1];
+      }
+      
+      // Tentar obter do parent (iframe)
+      try {
+        const parentURL = window.parent.location.href;
+        const parentMatch = parentURL.match(/\/admin\/(\d+)\/apps/);
+        if (parentMatch) {
+          return parentMatch[1];
+        }
+      } catch (e) {
+        // Cross-origin, normal no iframe
+      }
+      
+      // Fallback para desenvolvimento
+      return '1234567';
+    };
+    
+    const detectedStoreId = detectStoreId();
+    setStoreId(detectedStoreId);
+    setAppLoading(false);
+    
+    console.log('🏪 Store ID detectado:', detectedStoreId);
+  }, []);
+  
+  useEffect(() => {
+    if (storeId) {
+      loadERPConfig();
+      loadSyncHistory();
+    }
+  }, [storeId, loadERPConfig, loadSyncHistory]);
 
   const saveERPConfig = async () => {
     if (!erpUrl.trim() || !erpToken.trim()) {
@@ -126,12 +169,23 @@ function App() {
     return new Date(dateString).toLocaleString('pt-BR');
   };
 
+  // Loading inicial
+  if (appLoading || !storeId) {
+    return (
+      <div className="app loading">
+        <div className="loading-content">
+          <h2>🔄 Carregando...</h2>
+          <p>Detectando loja...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <div className="header">
         <h1>🏆 LatAm Treasure Bridge</h1>
-        <p>Integração Nuvemshop x ERP</p>
-        <p>Store ID: {storeId}</p>
+        <p>Integração Nuvemshop x ERP - Loja #{storeId}</p>
       </div>
 
       <div className="nav">
