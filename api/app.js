@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
     res.setHeader('X-Frame-Options', 'ALLOWALL');
     res.setHeader('Access-Control-Allow-Origin', '*');
     
-    // HTML do React app com caminhos absolutos
+    // HTML do React app com caminhos corretos
     const html = `<!doctype html>
 <html lang="pt-BR">
 <head>
@@ -21,8 +21,8 @@ module.exports = async function handler(req, res) {
     <meta name="theme-color" content="#000000"/>
     <meta name="description" content="LatAm Treasure Bridge - Integração Nuvemshop x ERP"/>
     <title>LatAm Treasure Bridge</title>
-    <script defer="defer" src="https://projetosopracallback.vercel.app/static/js/main.cffffc7b.js"></script>
-    <link href="https://projetosopracallback.vercel.app/static/css/main.8449ee06.css" rel="stylesheet">
+    <script defer="defer" src="/static/js/main.cffffc7b.js"></script>
+    <link href="/static/css/main.8449ee06.css" rel="stylesheet">
 </head>
 <body>
     <noscript>Você precisa habilitar JavaScript para executar este app.</noscript>
@@ -52,7 +52,6 @@ module.exports = async function handler(req, res) {
             <h1>🏆 LatAm Treasure Bridge</h1>
             <p class="error">❌ Erro ao carregar: ${error.message}</p>
             <button onclick="location.reload()" class="btn">🔄 Tentar Novamente</button>
-            <a href="https://projetosopracallback.vercel.app" class="btn">🏠 Ir para Home</a>
         </div>
     </body>
     </html>`;
