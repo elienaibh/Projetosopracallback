@@ -61,12 +61,12 @@ function App() {
     }
   }, [storeId]);
 
+  // Detectar store_id e inicializar app
   useEffect(() => {
     console.log('🚀 App iniciando...');
     
-    // Detectar store_id da URL
+    // Detectar store_id da URL ou usar fallback
     const detectStoreId = () => {
-      // Tentar diferentes formas de obter store_id
       const urlParams = new URLSearchParams(window.location.search);
       const paramStoreId = urlParams.get('store_id');
       
@@ -80,17 +80,6 @@ function App() {
         return pathMatch[1];
       }
       
-      // Tentar obter do parent (iframe)
-      try {
-        const parentURL = window.parent.location.href;
-        const parentMatch = parentURL.match(/\/admin\/(\d+)\/apps/);
-        if (parentMatch) {
-          return parentMatch[1];
-        }
-      } catch (e) {
-        // Cross-origin, normal no iframe
-      }
-      
       // Fallback para desenvolvimento
       return '1234567';
     };
@@ -100,8 +89,23 @@ function App() {
     setAppLoading(false);
     
     console.log('🏪 Store ID detectado:', detectedStoreId);
+    
+    // Notificar parent window que app está pronto (para iframe)
+    try {
+      if (window.parent !== window) {
+        window.parent.postMessage({
+          type: 'APP_READY',
+          appId: '19190',
+          storeId: detectedStoreId
+        }, '*');
+        console.log('📢 Parent notificado que app está pronto');
+      }
+    } catch (e) {
+      console.log('ℹ️ Rodando fora do iframe');
+    }
   }, []);
   
+  // Carregar configuração ERP quando store_id estiver disponível
   useEffect(() => {
     if (storeId) {
       loadERPConfig();
@@ -175,7 +179,7 @@ function App() {
       <div className="app loading">
         <div className="loading-content">
           <h2>🔄 Carregando...</h2>
-          <p>Detectando loja...</p>
+          <p>Inicializando LatAm Treasure Bridge...</p>
         </div>
       </div>
     );
