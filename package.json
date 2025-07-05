@@ -1,6 +1,6 @@
 {
   "name": "latam-treasure-bridge",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "App completo Nuvemshop - LatAm Treasure Bridge com OAuth, APIs e LGPD",
   "main": "api/callback.js",
   "scripts": {
