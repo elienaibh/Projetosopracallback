@@ -8,12 +8,12 @@
     },
     {
       "source": "/app",
-      "destination": "/index.html"
+      "destination": "/api/app"
     }
   ],
   "headers": [
     {
-      "source": "/app",
+      "source": "/api/app",
       "headers": [
         {
           "key": "X-Frame-Options",
